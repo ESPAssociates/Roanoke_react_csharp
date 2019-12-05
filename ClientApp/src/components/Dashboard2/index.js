@@ -110,7 +110,6 @@ const Dashboard = (props) => {
         // hit c# endpoint
         API.getSingleGage(currentGageID, '00060').then(response => response.json())
             .then(data => {
-                console.log(data);
                 if (data[0]) {
                     setFlowData(cleanNewGageData(data));
                 } else {
@@ -125,7 +124,6 @@ const Dashboard = (props) => {
         // hit c# endpoint
         API.getSingleGage(currentGageID, '00065').then(response => response.json())
             .then(data => {
-                console.log(data);
                 if (data[0]) {
                     setStageData(cleanNewGageData(data));
                 } else {
@@ -156,6 +154,10 @@ const Dashboard = (props) => {
     }else {
           setForecastStageData([])
           setForecastFlowData([])
+    }
+
+    if (currentGageID === "02055000") {
+        API.getSingleForecast();
     }
 
   },[currentGageID]);

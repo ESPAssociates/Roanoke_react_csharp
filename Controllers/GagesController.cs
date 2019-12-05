@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Xml;
+using System.Xml.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -8,6 +10,7 @@ using System.Net.Http;
 using System.Net.Http.Headers;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using System.Xml.Serialization;
 
 namespace React_app.Controllers
 {
@@ -36,31 +39,72 @@ namespace React_app.Controllers
             List<GageDatum> GageDataList = new List<GageDatum>();
             using (var httpClient = new HttpClient())
             {
-                using (var response = await httpClient.GetAsync($"https://waterservices.usgs.gov/nwis/iv/?format=json&sites={gageID}&period=P4D&parameterCd={paramType}"))
+                try
                 {
-                    string apiResponse = await response.Content.ReadAsStringAsync();
-                    var respData = JObject.Parse(apiResponse.ToString());
-                    System.Diagnostics.Debug.WriteLine("above if statement", paramType);
-                    System.Diagnostics.Debug.WriteLine(respData["value"]["timeSeries"][0]);
-                    if (respData["value"]["timeSeries"][0] != null && respData["value"]["timeSeries"][0]["values"] != null)
+                    using (var response = await httpClient.GetAsync($"https://waterservices.usgs.gov/nwis/iv/?format=json&sites={gageID}&period=P4D&parameterCd={paramType}"))
                     {
-                        var respList = respData["value"]["timeSeries"][0]["values"][0]["value"];
-                        System.Diagnostics.Debug.WriteLine("in if statement", paramType);
-                        GageDataList = JsonConvert.DeserializeObject<List<GageDatum>>(respList.ToString());
+                        string apiResponse = await response.Content.ReadAsStringAsync();
+                        var respData = JObject.Parse(apiResponse.ToString());
+                        System.Diagnostics.Debug.WriteLine("above if statement", paramType);
+                        if (respData["value"]["timeSeries"][0] != null && respData["value"]["timeSeries"][0]["values"] != null)
+                        {
+                            var respList = respData["value"]["timeSeries"][0]["values"][0]["value"];
+                            GageDataList = JsonConvert.DeserializeObject<List<GageDatum>>(respList.ToString());
+                        }
+                        else
+                        {
+                            GageDataList = new List<GageDatum>();
+                        }
                     }
-                    else
-                    {
-                        System.Diagnostics.Debug.WriteLine("in else statement", paramType);
-                        System.Diagnostics.Debug.WriteLine(respData["value"]["timeSeries"][0]);
-                        GageDataList = new List<GageDatum>();
-                    }
+                    return Ok(GageDataList);
+                }
+                catch (Exception exception)
+                {
+                    System.Diagnostics.Debug.WriteLine(exception);
+                    return null;
                 }
             }
-            return Ok(GageDataList);
         }
 
+        [Route("~/api/gages/forecast")]
+        [HttpGet]
+        public async Task<IActionResult> ISingleGageForecast()
+        { 
+            System.Diagnostics.Debug.WriteLine("inside forecast");
+            List<GageDatum> GageForecastList = new List<GageDatum>();
+            using (var httpClient = new HttpClient())
+            {
+                try
+                {
+                    using (var response = await httpClient.GetAsync($"https://water.weather.gov/ahps2/hydrograph_to_xml.php?gage=ronv2"))
+                    {
+                        string apiResponse = await response.Content.ReadAsStringAsync();
+                        //var respData = JObject.Parse(apiResponse.ToString());
+                        var respXml = XElement.Parse(apiResponse);
+                        var items = respXml.Descendants("forecast").Descendants("datum").Select(x => new {
+                                dateTime = x.Element("valid").Value,
+                                flow = x.Element("secondary").Value
+                                })
+                                .FirstOrDefault();
+                        System.Diagnostics.Debug.WriteLine(items.ToString());
 
+                        //GageForecastList = apiResponse;
+                        //}
+                        //else
+                        //{
+                        //    System.Diagnostics.Debug.WriteLine("in else statement", gageID);
+                        //    System.Diagnostics.Debug.WriteLine(respData["value"]["timeSeries"][0]);
+                        //    GageForecastList = new List<GageDatum>();
+                        //}
+                    }
+                    return Ok(GageForecastList);
+                }
+                catch (Exception exception)
+                {
+                    System.Diagnostics.Debug.WriteLine(exception);
+                    return null;
+                }
+            }
+        }
     }
-
-
 }

@@ -16,13 +16,18 @@ export default {
     },
 
     getAllGages: function () {
-        return fetch('api/Gages');
+        return fetch('api/gages');
     },
 
     getSingleGage: function (id, paramType) {
-        return fetch(`api/Gages/${id}/${paramType}`);
+        return fetch(`api/gages/${id}/${paramType}`);
+    },
+
+    getSingleForecast: function () {
+        return fetch('api/gages/forecast');
     },
 
     // TODO add call to NOAA
-    getGagesForecast : axios.get('https://water.weather.gov/ahps2/hydrograph_to_xml.php?gage=ronv2')
+    getGagesForecast: axios.get('https://water.weather.gov/ahps2/hydrograph_to_xml.php?gage=ronv2'),
+
 };
