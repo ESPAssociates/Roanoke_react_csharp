@@ -46,7 +46,12 @@ const Dashboard = (props) => {
     let gageData = data.data.value.timeSeries[0].values[0].value;
     gageData = gageData.filter(item => item.dateTime.includes(':00:00'));
     return gageData;
-  }
+    }
+
+    function cleanNewGageData(data) { 
+        let gageData = data.filter(item => item.dateTime.includes(':00:00'));
+        return gageData;
+    }
 
   // get gage Forecast data  from API response
   // clean stageData
@@ -86,24 +91,52 @@ const Dashboard = (props) => {
 
     if (currentGageID) {
       // clean and set flow data for selected gage, if available
-      API.getGagesHistory(currentGageID, "flow").then(response => {
-        if (response.data.value.timeSeries[0]) {
-          // let val = response.data.value.timeSeries[0].values[0].value[0].value;
-          setFlowData(cleanGageData(response));
-        } else {
-          setFlowData("no flow data available");
-        }
-      });
+      //API.getGagesHistory(currentGageID, "flow").then(response => {
+      //  if (response.data.value.timeSeries[0]) {
+      //    setFlowData(cleanGageData(response));
+      //  } else {
+      //    setFlowData("no flow data available");
+      //  }
+      //});
       // clean and set stage data for selected gage, if available
-      API.getGagesHistory(currentGageID, "stage").then(response => {
-        if (response.data.value.timeSeries[0]) {
-          // let val = response.data.value.timeSeries[0].values[0].value[0].value;
-          setStageData(cleanGageData(response));
-        } else {
-          setStageData("no flow data available");
-        }
-      });   
-      
+      //API.getGagesHistory(currentGageID, "stage").then(response => {
+      //  if (response.data.value.timeSeries[0]) {
+      //    setStageData(cleanGageData(response));
+      //  } else {
+      //    setStageData("no flow data available");
+      //  }
+      //  });
+
+        // hit c# endpoint
+        API.getSingleGage(currentGageID, '00060').then(response => response.json())
+            .then(data => {
+                console.log(data);
+                if (data[0]) {
+                    setFlowData(cleanNewGageData(data));
+                } else {
+                    setFlowData("no flow data available");
+                }
+            })
+            .catch(err => {
+                console.log(err);
+                setFlowData("no flow data available");
+            });
+
+        // hit c# endpoint
+        API.getSingleGage(currentGageID, '00065').then(response => response.json())
+            .then(data => {
+                console.log(data);
+                if (data[0]) {
+                    setStageData(cleanNewGageData(data));
+                } else {
+                    setStageData("no stage data available");
+                }
+            })
+            .catch(err => {
+                console.log(err);
+                setStageData("no stage data available");
+            });
+
       // get flood levels, return current levels for current gage
         const allLevels = Data.stageLevelData()
         setStageLevels(allLevels[currentGageID]);

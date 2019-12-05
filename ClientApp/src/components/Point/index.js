@@ -30,7 +30,7 @@ const GagePoint = (props) => {
             // Create a point geometry
             var point = {
                 type: "point",
-                longitude: props.gageInfo.long,
+                longitude: props.gageInfo.longitude,
                 latitude: props.gageInfo.lat
               };
 
@@ -47,9 +47,9 @@ const GagePoint = (props) => {
             // set attributes for gage point
             var gageAttr = {
                 name: props.gageInfo.name,
-                id: props.gageInfo.id,
+                id: props.gageID,
                 datum: props.gageInfo.datum,
-                location: {longitude: props.gageInfo.long,
+                location: {longitude: props.gageInfo.longitude,
                     latitude: props.gageInfo.lat}
             };
             
